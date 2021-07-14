@@ -35,6 +35,9 @@ async function fetchLabels(url) {
 
 $(document).ready(() => {
   $('.icdisplay').hide();
+  $('#feedElement').on('load', async () => {
+    await main();
+  });
 });
 
 $('#modelBtns .btn').on('change', async (e) => {
@@ -63,9 +66,6 @@ $('#img').click(async () => {
 $('#imageFile').change((e) => {
   const files = e.target.files;
   if (files.length > 0) {
-    $('#feedElement').on('load', async () => {
-      await main();
-    });
     $('#feedElement').removeAttr('height');
     $('#feedElement').removeAttr('width');
     imgElement.src = URL.createObjectURL(files[0]);

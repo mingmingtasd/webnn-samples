@@ -24,6 +24,9 @@ let outputBuffer;
 $(document).ready(() => {
   $('.icdisplay').hide();
   $('.badge').html(modelId);
+  $('#feedElement').on('load', async () => {
+    await main();
+  });
 });
 
 // Click trigger to do inference with <img> element
@@ -49,9 +52,6 @@ $('#gallery .gallery-image').hover((e) => {
 $('#imageFile').change((e) => {
   const files = e.target.files;
   if (files.length > 0) {
-    $('#feedElement').on('load', async () => {
-      await main();
-    });
     $('#feedElement').removeAttr('height');
     $('#feedElement').removeAttr('width');
     imgElement.src = URL.createObjectURL(files[0]);
