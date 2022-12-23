@@ -68,7 +68,7 @@ export class MobileNetV2Nchw {
   }
 
   async load(contextOptions) {
-    this.context_ = await navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
+    this.context_ = await navigator.ml.createContext({devicePreference: 'gpu'});
     this.builder_ = new MLGraphBuilder(this.context_);
     const data = this.builder_.input('input',
         {type: 'float32', dimensions: this.inputOptions.inputDimensions});
