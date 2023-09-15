@@ -29,13 +29,13 @@ export class MobileNetV2Nchw {
     const bias =
         await buildConstantByNpy(this.builder_, biasName);
     options.bias = bias;
+    const conv = this.builder_.conv2d(input, weights, options);
     if (relu6) {
       // implement `relu6` by `clamp` of  WebNN API
-      options.activation = this.builder_.clamp({minValue: 0, maxValue: 6});
+      return this.builder_.clamp(conv, {minValue: 0, maxValue: 6});
     } else {
-      options.activation = undefined;
+      return conv;
     }
-    return this.builder_.conv2d(input, weights, options);
   }
 
   async buildGemm_(input, name) {
