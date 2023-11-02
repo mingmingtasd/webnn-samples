@@ -122,7 +122,7 @@ export class MobileNetV27Nchw {
     const conv3 = await this.buildConv_(bottleneck15, '95', true);
     const conv4 = await this.buildConv_(conv3, '97', false, {groups: 1280, strides: [7, 7]});
     const conv5 = await this.buildConv_(conv4, '104', false);
-    const reshape = this.builder_.reshape(conv5, [1, null]);
+    const reshape = this.builder_.reshape(conv5, [1, -1]);
     // return reshape;
     // const gemm = await this.buildGemm_(reshape, '104');
     return this.builder_.softmax(reshape);
@@ -143,7 +143,6 @@ export class MobileNetV27Nchw {
   async compute(inputBuffer, outputBuffer) {
     const inputs = {'input': inputBuffer};
     const outputs = {'output': outputBuffer};
-    const results = await this.context_.compute(this.graph_, inputs, outputs);
-    return results;
+    await this.context_.compute(this.graph_, inputs, outputs);
   }
 }

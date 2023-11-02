@@ -124,9 +124,8 @@ async function renderCamStream() {
   const inputCanvas = utils.getVideoFrame(camElement);
   console.log('- Computing... ');
   const start = performance.now();
-  const results = await netInstance.compute(inputBuffer, outputBuffer);
+  await netInstance.compute(inputBuffer, outputBuffer);
   computeTime = (performance.now() - start).toFixed(2);
-  outputBuffer = results.outputs.output;
   console.log(`  done in ${computeTime} ms.`);
   drawInput(inputCanvas, 'camInCanvas');
   showPerfResult();
@@ -224,7 +223,6 @@ async function main() {
     if (isFirstTimeLoad) $('#hint').hide();
     let start;
     const [numRuns, powerPreference] = utils.getUrlParams();
-
     // Only do load() and build() when model first time loads,
     // there's new model choosed, backend changed or device changed
     if (isFirstTimeLoad || instanceType !== modelName + layout ||
@@ -257,7 +255,7 @@ async function main() {
       // UI shows model loading progress
       await ui.showProgressComponent('current', 'pending', 'pending');
       console.log('- Loading weights... ');
-      const contextOptions = {type: 'webnn', deviceType: devicePreference};
+      const contextOptions = {type: 'webnn', devicePreference: devicePreference};
       if (powerPreference) {
         contextOptions['powerPreference'] = powerPreference;
       }
@@ -282,12 +280,11 @@ async function main() {
       let medianComputeTime;
 
       // Do warm up
-      let results = await netInstance.compute(inputBuffer, outputBuffer);
+      await netInstance.compute(inputBuffer, outputBuffer);
 
       for (let i = 0; i < numRuns; i++) {
         start = performance.now();
-        results = await netInstance.compute(
-            results.inputs.input, results.outputs.output);
+        await netInstance.compute(inputBuffer, outputBuffer);
         computeTime = (performance.now() - start).toFixed(2);
         console.log(`  compute time ${i+1}: ${computeTime} ms`);
         computeTimeArray.push(Number(computeTime));
@@ -297,7 +294,6 @@ async function main() {
         medianComputeTime = medianComputeTime.toFixed(2);
         console.log(`  median compute time: ${medianComputeTime} ms`);
       }
-      outputBuffer = results.outputs.output;
       console.log('outputBuffer: ', outputBuffer);
       await ui.showProgressComponent('done', 'done', 'done');
       ui.readyShowResultComponents();
