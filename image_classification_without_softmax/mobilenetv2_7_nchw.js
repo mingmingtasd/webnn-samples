@@ -122,10 +122,7 @@ export class MobileNetV27Nchw {
     const conv3 = await this.buildConv_(bottleneck15, '95', true);
     const conv4 = await this.buildConv_(conv3, '97', false, {groups: 1280, strides: [7, 7]});
     const conv5 = await this.buildConv_(conv4, '104', false);
-    const reshape = this.builder_.reshape(conv5, [1, null]);
-    // return reshape;
-    // const gemm = await this.buildGemm_(reshape, '104');
-    return this.builder_.softmax(reshape);
+    return this.builder_.reshape(conv5, [1, null]);
   }
 
   async build(outputOperand) {
