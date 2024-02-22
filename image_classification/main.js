@@ -29,8 +29,8 @@ let buildTime = 0;
 let computeTime = 0;
 let inputOptions;
 let outputBuffer;
-let devicePreference = '';
-let lastDevicePreference = '';
+let deviceType = '';
+let lastdeviceType = '';
 let backend = '';
 let lastBackend = '';
 const disabledSelectors = ['#tabs > li', '.btn'];
@@ -137,6 +137,25 @@ async function renderCamStream() {
 
 // Get top 3 classes of labels from output buffer
 function getTopClasses(buffer, labels) {
+  // Convert output buffer from float16 to float32, because tf.tensor/tf.softmax doesn't
+  // support float16 data type according to https://js.tensorflow.org/api/latest/#tensor.
+  if (inputOptions.dataType === 'float16') {
+    let elements_count = utils.sizeOfShape(netInstance.outputDimensions);
+    let float32Buffer = new Float32Array(elements_count);
+    for (let i = 0; i < elements_count; ++i) {
+      float32Buffer[i] = utils.float16ToNumber(buffer[i]);
+    }
+    buffer = float32Buffer;
+  }
+
+  // Softmax
+  buffer = tf.tidy(() => {
+    const a =
+      tf.tensor(buffer, netInstance.outputDimensions, 'float32');
+    const b = tf.softmax(a);
+    return b.dataSync();
+  });
+
   const probs = Array.from(buffer);
   const indexes = probs.map((prob, index) => [prob, index]);
   const sorted = indexes.sort((a, b) => {
@@ -150,9 +169,6 @@ function getTopClasses(buffer, labels) {
 
   for (let i = 0; i < 3; ++i) {
     let prob = sorted[i][0];
-    if (inputOptions.dataType === 'float16') {
-      prob = utils.float16ToNumber(prob);
-    }
     const index = sorted[i][1];
     const c = {
       label: labels[index],
@@ -218,7 +234,7 @@ function constructNetObject(type) {
 async function main() {
   try {
     if (modelName === '') return;
-    [backend, devicePreference] =
+    [backend, deviceType] =
         $('input[name="backend"]:checked').attr('id').split('_');
     ui.handleClick(disabledSelectors, true);
     if (isFirstTimeLoad) $('#hint').hide();
@@ -228,12 +244,12 @@ async function main() {
     // Only do load() and build() when model first time loads,
     // there's new model choosed, backend changed or device changed
     if (isFirstTimeLoad || instanceType !== modelName + layout ||
-        lastDevicePreference != devicePreference || lastBackend != backend) {
-      if (lastDevicePreference != devicePreference || lastBackend != backend) {
+        lastdeviceType != deviceType || lastBackend != backend) {
+      if (lastdeviceType != deviceType || lastBackend != backend) {
         // Set backend and device
-        await utils.setBackend(backend, devicePreference);
-        lastDevicePreference = lastDevicePreference != devicePreference ?
-                               devicePreference : lastDevicePreference;
+        await utils.setBackend(backend, deviceType);
+        lastdeviceType = lastdeviceType != deviceType ?
+                               deviceType : lastdeviceType;
         lastBackend = lastBackend != backend ? backend : lastBackend;
       }
       if (netInstance !== null) {
@@ -257,7 +273,7 @@ async function main() {
       // UI shows model loading progress
       await ui.showProgressComponent('current', 'pending', 'pending');
       console.log('- Loading weights... ');
-      const contextOptions = {type: 'webnn', deviceType: devicePreference};
+      const contextOptions = {type: 'webnn', deviceType: deviceType};
       if (powerPreference) {
         contextOptions['powerPreference'] = powerPreference;
       }

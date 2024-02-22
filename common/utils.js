@@ -60,7 +60,7 @@ export async function buildConstantByNpy(builder, url) {
     typedArray[i] = dataView[getFuncName](
         i * TypedArrayConstructor.BYTES_PER_ELEMENT, littleEndian);
   }
-  return builder.constant({type, dimensions}, typedArray);
+  return builder.constant({dataType: type, type, dimensions}, typedArray);
 }
 
 // Convert video frame to a canvas element

@@ -80,7 +80,7 @@ export class MobileNetV27Nchw {
     this.context_ = await navigator.ml.createContext(contextOptions);
     this.builder_ = new MLGraphBuilder(this.context_);
     const data = this.builder_.input('input',
-        {type: this.dataType_, dimensions: this.inputOptions.inputDimensions});
+        {dataType: this.dataType_, dimensions: this.inputOptions.inputDimensions});
     const conv0 = await this.buildConv_(
         data, '0', true, {padding: [1, 1, 1, 1], strides: [2, 2]});
     const conv1 = await this.buildConv_(
@@ -122,10 +122,8 @@ export class MobileNetV27Nchw {
     const conv3 = await this.buildConv_(bottleneck15, '95', true);
     const conv4 = await this.buildConv_(conv3, '97', false, {groups: 1280, strides: [7, 7]});
     const conv5 = await this.buildConv_(conv4, '104', false);
-    const reshape = this.builder_.reshape(conv5, [1, null]);
-    // return reshape;
-    // const gemm = await this.buildGemm_(reshape, '104');
-    return this.builder_.softmax(reshape);
+    return this.builder_.reshape(conv5, [1, 1000]);
+    // return this.builder_.softmax(reshape);
   }
 
   async build(outputOperand) {
